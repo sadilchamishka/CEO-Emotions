@@ -3,3 +3,6 @@ pdfplumber
 speechrecognition
 pydub
 ffprobe
+docx-mailmerge
+librosa==0.4.2
+fairseq

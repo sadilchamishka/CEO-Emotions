@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import pdfplumber
 from pdfDataProcessor import processFirstpage,speakerSpeech
 from speechRecognition import speechToText, mockSpeechToText
+from mailmerge import MailMerge
 
 app = Flask(__name__)
 
@@ -47,7 +48,7 @@ def home():
     participants = CORPORATE_PARTICIPANTS+CONFERENCE_CALL_PARTICIPANTS+['Operator ']
     speakers,speeches = speakerSpeech(all_text_data[start:], participants)
     
-    #data = speechToText('transcript.mp3')
+    data1,emotion_array = speechToText('transcript.mp3')
     data = mockSpeechToText()
 
     prediction_array = []
@@ -70,7 +71,22 @@ def home():
             prediction_array.append(current_index)
         else:
             prediction_array.append("*")
-    print(prediction_array)
+    
+    data_array = []
+    
+    for index,sp in enumerate(prediction_array):
+        if sp=='*':
+            continue
+        x = {}
+        x['time'] = str(5*index)
+        x['speaker'] = speakers[sp]
+        x['speech'] = " ".join(speeches[sp])
+        x['emotion'] = str(emotion_array[index])
+        data_array.append(x)
+  
+    document = MailMerge('word_template.docx')
+    document.merge_rows('time',data_array)
+    document.write('test-output.docx')
     return "success"
 
 if __name__ == "__main__":
